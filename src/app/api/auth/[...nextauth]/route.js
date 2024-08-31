@@ -26,6 +26,7 @@ const handler = NextAuth({
         }
     },
     secret: process.env.NEXTAUTH_SECRET,
+    basePath: "/api/auth",
 });
 
 export { handler as GET, handler as POST };
