@@ -1,32 +1,30 @@
-// pages/api/auth/[...nextauth].js
 import NextAuth from 'next-auth';
 import FacebookProvider from 'next-auth/providers/facebook';
 
-const authOptions = {
-  providers: [
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_ID,
-      clientSecret: process.env.FACEBOOK_SECRET,
-      authorization: {
-        params: {
-          scope: 'email,public_profile,ads_read,pages_read_engagement' // add necessary scopes here
+const handler = NextAuth({
+    providers: [
+        FacebookProvider({
+            clientId: process.env.FACEBOOK_ID,
+            clientSecret: process.env.FACEBOOK_SECRET,
+            authorization: {
+                params: {
+                    scope: 'email,public_profile,ads_read,pages_read_engagement' // add necessary scopes here
+                }
+            }
+        }),
+    ],
+    callbacks: {
+        async jwt({ token, account }) {
+            if (account) {
+                token.accessToken = account.access_token;
+            }
+            return token;
+        },
+        async session({ session, token }) {
+            session.accessToken = token.accessToken;
+            return session;
         }
-      }
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, account }) {
-      if (account) {
-        token.accessToken = account.access_token;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      session.accessToken = token.accessToken;
-      return session;
     }
-  }
-};
+});
 
-// Export the NextAuth handler for GET and POST requests
-export default (req, res) => NextAuth(req, res, authOptions);
+export { handler as GET, handler as POST };A
