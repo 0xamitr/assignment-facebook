@@ -1,95 +1,55 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import axios from 'axios';
 
 export default function Home() {
+  const { data: session } = useSession();
+  const [pagesdata, setPagesdata] = useState();
+  useEffect(() => {
+    if (session) {
+      const accessToken = session.accessToken;
+
+      async function getFacebookAccounts() {
+        try {
+          const response = await axios.get('https://graph.facebook.com/me/accounts', {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          console.log('Facebook Accounts:', response.data.data);
+          setPagesdata(response.data.data)
+        } catch (error) {
+          console.error('Failed to fetch data from Facebook API:', error);
+        }
+      }
+      getFacebookAccounts();
+    }
+  }, [session]);
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+    <main >
+      {
+        session &&
+        <>
+          <img src={session.user.image} />
+          <p>Name: {session.user.name}</p>
+          <p>Email: {session.user.email}</p>
+          <div>
+            <h2>Pages</h2>
+            {
+              pagesdata &&
+              pagesdata.map((e, index)=>{
+                return(
+                  <p key={index}>
+                    {e.name}
+                  </p>
+                )
+              })
+            }
+          </div>
+        </>
+      }
     </main>
   );
 }
